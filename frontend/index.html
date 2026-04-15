@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Analyzer — AI-Powered Resume Feedback</title>
+  <meta name="description" content="Upload your resume and get instant AI-powered feedback, scoring, and job match analysis.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b1120;
+      --surface: rgba(15, 23, 42, 0.8);
+      --border: rgba(51, 65, 85, 0.5);
+      --primary: #3b82f6;
+      --primary-glow: #7c3aed;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 80px 16px;
+      position: relative;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Animated background glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(ellipse at 40% 30%, rgba(59,130,246,0.08) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 60%, rgba(124,58,237,0.06) 0%, transparent 50%);
+      animation: drift 20s ease-in-out infinite alternate;
+      z-index: 0;
+    }
+
+    @keyframes drift {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-5%, 3%); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 20px -5px rgba(59,130,246,0.3); }
+      50% { box-shadow: 0 0 35px -5px rgba(59,130,246,0.5); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .container {
+      max-width: 520px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      animation: fadeInUp 0.5s ease-out;
+    }
+    .badge svg { color: var(--primary); }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      animation: fadeInUp 0.5s ease-out;
+    }
+    .header h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+    .header h1 .gradient {
+      background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header p {
+      color: var(--text-muted);
+      font-size: 15px;
+      max-width: 360px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Card sections */
+    .card {
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      animation: fadeInUp 0.5s ease-out 0.15s both;
+    }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      animation: fadeInUp 0.5s ease-out 0.15s both;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: rgba(59,130,246,0.5);
+      background: rgba(59,130,246,0.03);
+    }
+    .upload-zone input { display: none; }
+    .upload-icon {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      background: rgba(59,130,246,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .upload-icon svg { color: var(--primary); }
+    .upload-zone .title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .upload-zone .subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* File preview */
+    .file-preview {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      animation: fadeInUp 0.3s ease-out;
+    }
+    .file-info { display: flex; align-items: center; gap: 12px; }
+    .file-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: rgba(59,130,246,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .file-icon svg { color: var(--primary); width: 20px; height: 20px; }
+    .file-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .file-size { font-size: 11px; color: var(--text-muted); }
+    .file-remove {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .file-remove:hover { background: rgba(51,65,85,0.5); }
+
+    /* Textarea */
+    .textarea-card { padding: 4px; margin-top: 16px; }
+    .textarea-card textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 16px;
+      resize: none;
+      outline: none;
+      line-height: 1.6;
+    }
+    .textarea-card textarea::placeholder { color: rgba(100,116,139,0.6); }
+
+    /* Button */
+    .btn-analyze {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 16px;
+      transition: all 0.2s;
+      animation: pulseGlow 2.5s ease-in-out infinite;
+    }
+    .btn-analyze:hover { filter: brightness(1.1); }
+    .btn-analyze:active { transform: scale(0.98); }
+    .btn-analyze:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      animation: none;
+    }
+    .btn-analyze .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(100,116,139,0.4);
+      margin-top: 32px;
+      animation: fadeInUp 0.5s ease-out 0.3s both;
+    }
+
+    /* Status error */
+    .status-error {
+      text-align: center;
+      color: #ef4444;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+        AI-Powered Analysis
+      </div>
+      <h1><span class="gradient">Resume</span> Analyzer</h1>
+      <p>Upload your resume and get instant AI feedback on how to improve it.</p>
+    </div>
+
+    <!-- Upload Zone (shown when no file) -->
+    <label class="upload-zone card" id="uploadZone">
+      <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt">
+      <div class="upload-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </div>
+      <div class="title">Drop your resume here or click to browse</div>
+      <div class="subtitle">Supports PDF, DOC, DOCX, TXT</div>
+    </label>
+
+    <!-- File Preview (hidden initially) -->
+    <div class="card file-preview" id="filePreview" style="display:none;">
+      <div class="file-info">
+        <div class="file-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+        </div>
+        <div>
+          <div class="file-name" id="fileName"></div>
+          <div class="file-size" id="fileSize"></div>
+        </div>
+      </div>
+      <button class="file-remove" onclick="removeFile()" title="Remove file">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Job Description -->
+    <div class="card textarea-card">
+      <textarea id="jd" rows="4" placeholder="Paste a job description to get a match score (optional)"></textarea>
+    </div>
+
+    <!-- Analyze Button -->
+    <button class="btn-analyze" id="analyzeBtn" disabled onclick="analyze()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+      <span id="btnText">Analyze Resume</span>
+    </button>
+
+    <p id="status"></p>
+    <p class="footer">Your data stays private and is never stored.</p>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const uploadZone = document.getElementById('uploadZone');
+    const filePreview = document.getElementById('filePreview');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    let selectedFile = null;
+
+    // Drag & drop
+    uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+    uploadZone.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) setFile(fileInput.files[0]);
+    });
+
+    function setFile(file) {
+      selectedFile = file;
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+      uploadZone.style.display = 'none';
+      filePreview.style.display = 'flex';
+      analyzeBtn.disabled = false;
+    }
+
+    function removeFile() {
+      selectedFile = null;
+      fileInput.value = '';
+      uploadZone.style.display = '';
+      filePreview.style.display = 'none';
+      analyzeBtn.disabled = true;
+    }
+
+    async function analyze() {
+      if (!selectedFile) return;
+
+      analyzeBtn.disabled = true;
+      document.getElementById('btnText').innerHTML = '<span class="spinner"></span> Analyzing...';
+      document.getElementById('status').textContent = '';
+
+      const fd = new FormData();
+      fd.append('file', selectedFile);
+      const jd = document.getElementById('jd').value;
+      let endpoint = 'http://127.0.0.1:8000/score';
+      if (jd.trim()) {
+        fd.append('job_description', jd);
+        endpoint = 'http://127.0.0.1:8000/match';
+      }
+
+      try {
+        const res = await fetch(endpoint, { method: 'POST', body: fd });
+        const json = await res.json();
+        if (!json.success) throw new Error('Backend error');
+        sessionStorage.setItem('resumeResult', JSON.stringify(json.data));
+        window.location.href = 'results.html';
+      } catch (err) {
+        console.error(err);
+        document.getElementById('status').innerHTML = '<p class="status-error">❌ Error — make sure your backend is running.</p>';
+        analyzeBtn.disabled = false;
+        document.getElementById('btnText').innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg> Analyze Resume`;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,406 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results — Resume Analyzer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b1120;
+      --surface: rgba(15, 23, 42, 0.8);
+      --border: rgba(51, 65, 85, 0.5);
+      --primary: #3b82f6;
+      --primary-glow: #7c3aed;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --destructive: #ef4444;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 48px 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(ellipse at 40% 30%, rgba(59,130,246,0.06) 0%, transparent 50%);
+      z-index: 0;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Back button */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 24px;
+      transition: color 0.2s;
+      animation: fadeInUp 0.4s ease-out;
+    }
+    .back-btn:hover { color: var(--text); }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 16px;
+      animation: fadeInUp 0.5s ease-out both;
+    }
+    .card:nth-child(2) { animation-delay: 0.05s; }
+    .card:nth-child(3) { animation-delay: 0.1s; }
+    .card:nth-child(4) { animation-delay: 0.15s; }
+    .card:nth-child(5) { animation-delay: 0.2s; }
+    .card:nth-child(6) { animation-delay: 0.25s; }
+    .card:nth-child(7) { animation-delay: 0.3s; }
+
+    .card-glow {
+      border-color: rgba(59,130,246,0.2);
+      box-shadow: 0 0 20px -5px rgba(59,130,246,0.15);
+    }
+
+    /* Score ring */
+    .score-section { text-align: center; }
+    .score-ring { width: 144px; height: 144px; margin: 0 auto; }
+    .score-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .score-ring .track { fill: none; stroke: rgba(51,65,85,0.5); stroke-width: 8; }
+    .score-ring .progress { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s ease-out; }
+    .score-value {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: -100px;
+    }
+    .score-number { font-size: 2rem; font-weight: 700; }
+    .score-max { font-size: 12px; color: var(--text-muted); }
+    .score-label { font-size: 16px; font-weight: 600; margin-top: 16px; }
+    .score-summary { font-size: 13px; color: var(--text-muted); margin-top: 8px; max-width: 380px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+    .color-success { color: var(--success); }
+    .color-warning { color: var(--warning); }
+    .color-destructive { color: var(--destructive); }
+
+    /* Section headers */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .section-header svg { width: 20px; height: 20px; }
+    .section-header h3 { font-size: 15px; font-weight: 600; }
+
+    /* List items */
+    .list-item {
+      font-size: 13px;
+      color: var(--text-muted);
+      padding: 8px 0 8px 16px;
+      line-height: 1.6;
+    }
+    .list-item-success { border-left: 2px solid rgba(34,197,94,0.3); }
+    .list-item-warning { border-left: 2px solid rgba(245,158,11,0.3); }
+    .list-item-primary { border-left: 2px solid rgba(59,130,246,0.3); }
+    .list-item + .list-item { margin-top: 8px; }
+
+    /* Tags */
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid;
+    }
+    .tag-success { background: rgba(34,197,94,0.1); color: var(--success); border-color: rgba(34,197,94,0.2); }
+    .tag-destructive { background: rgba(239,68,68,0.1); color: var(--destructive); border-color: rgba(239,68,68,0.2); }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      animation: fadeInUp 0.5s ease-out;
+    }
+    .empty h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+    .empty p { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+    .empty a {
+      display: inline-flex;
+      padding: 10px 24px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: var(--radius);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: filter 0.2s;
+    }
+    .empty a:hover { filter: brightness(1.1); }
+  </style>
+</head>
+<body>
+  <div class="container" id="content"></div>
+
+  <script>
+    const data = JSON.parse(sessionStorage.getItem('resumeResult') || 'null');
+    const container = document.getElementById('content');
+
+    if (!data) {
+      container.innerHTML = `
+        <div class="empty">
+          <h2>No Results Found</h2>
+          <p>Please analyze a resume first to see results.</p>
+          <a href="index.html">← Go Back</a>
+        </div>`;
+    } else {
+      const score = data.score ?? data.match_score ?? 0;
+      const scoreColor = score >= 75 ? 'success' : score >= 50 ? 'warning' : 'destructive';
+      const strokeColor = score >= 75 ? '#22c55e' : score >= 50 ? '#f59e0b' : '#ef4444';
+      const label = data.match_score !== undefined ? 'Match Score' : 'Resume Score';
+
+      const R = 54;
+      const C = 2 * Math.PI * R;
+      const offset = C - (score / 100) * C;
+
+      let html = `
+        <a href="index.html" class="back-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          Back to analyzer
+        </a>
+
+        <div class="card card-glow score-section">
+          <div class="score-ring">
+            <svg viewBox="0 0 120 120">
+              <circle class="track" cx="60" cy="60" r="${R}" />
+              <circle class="progress" cx="60" cy="60" r="${R}"
+                stroke="${strokeColor}"
+                stroke-dasharray="${C}"
+                stroke-dashoffset="${offset}" />
+            </svg>
+          </div>
+          <div class="score-value">
+            <span class="score-number color-${scoreColor}">${score}</span>
+            <span class="score-max">/ 100</span>
+          </div>
+          <div class="score-label">${label}</div>
+          ${data.summary ? `<div class="score-summary">${data.summary}</div>` : ''}
+        </div>`;
+
+      if (data.strengths?.length) {
+        html += `<div class="card">
+          <div class="section-header">
+            <svg style="color:var(--success)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <h3>Strengths</h3>
+          </div>
+          ${data.strengths.map(s => `<div class="list-item list-item-success">${s}</div>`).join('')}
+        </div>`;
+      }
+
+      if (data.weaknesses?.length) {
+        html += `<div class="card">
+          <div class="section-header">
+            <svg style="color:var(--warning)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <h3>Areas to Improve</h3>
+          </div>
+          ${data.weaknesses.map(w => `<div class="list-item list-item-warning">${w}</div>`).join('')}
+        </div>`;
+      }
+
+      if (data.suggestions?.length) {
+        html += `<div class="card">
+          <div class="section-header">
+            <svg style="color:var(--primary)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+            <h3>Suggestions</h3>
+          </div>
+          ${data.suggestions.map(s => `<div class="list-item list-item-primary">${s}</div>`).join('')}
+        </div>`;
+      }
+
+      if (data.keywords_found?.length) {
+        html += `<div class="card">
+          <h3 style="font-size:15px;font-weight:600;margin-bottom:12px">Keywords Found</h3>
+          <div class="tags">${data.keywords_found.map(k => `<span class="tag tag-success">${k}</span>`).join('')}</div>
+        </div>`;
+      }
+
+      if (data.keywords_missing?.length) {
+        html += `<div class="card">
+          <h3 style="font-size:15px;font-weight:600;margin-bottom:12px">Missing Keywords</h3>
+          <div class="tags">${data.keywords_missing.map(k => `<span class="tag tag-destructive">${k}</span>`).join('')}</div>
+        </div>`;
+      }
+
+      container.innerHTML = html;
+    }
+  </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Results</title>
+
+<style>
+body {
+  background:#0b1120;
+  color:white;
+  font-family:Inter;
+  padding:30px;
+}
+
+.card {
+  background:#111827;
+  padding:20px;
+  margin:20px 0;
+  border-radius:12px;
+}
+
+h2 {margin-bottom:10px;}
+
+.score {
+  font-size:40px;
+  font-weight:bold;
+  color:#3b82f6;
+}
+
+.badge {
+  display:inline-block;
+  padding:6px 12px;
+  margin:5px;
+  background:#1f2937;
+  border-radius:8px;
+  font-size:12px;
+}
+
+.green {color:#22c55e;}
+.red {color:#ef4444;}
+.yellow {color:#facc15;}
+
+.bar {
+  height:8px;
+  background:#1f2937;
+  border-radius:10px;
+  overflow:hidden;
+  margin-top:5px;
+}
+
+.fill {
+  height:100%;
+  background:#3b82f6;
+}
+</style>
+
+</head>
+<body>
+
+<h1>Resume Analysis</h1>
+
+<div id="app"></div>
+
+<script>
+
+const raw = sessionStorage.getItem("resumeResult");
+
+if (!raw) {
+  document.getElementById("app").innerHTML = " No Data Found";
+} else {
+
+  const d = JSON.parse(raw);
+  console.log("DATA:", d);
+
+  const score = d.overall_score || 0;
+
+  document.getElementById("app").innerHTML = `
+
+  <!-- SCORE -->
+  <div class="card">
+    <h2>${d.name || "Candidate"}</h2>
+    <div class="score">${score}/100</div>
+    <p>${d.summary || ""}</p>
+  </div>
+
+  <!-- SECTION SCORES -->
+  <div class="card">
+    <h3>Section Breakdown</h3>
+    ${Object.entries(d.section_scores || {}).map(([k,v]) => `
+      <p>${k}: ${v}</p>
+      <div class="bar"><div class="fill" style="width:${v}%"></div></div>
+    `).join("")}
+  </div>
+
+  <!-- SKILLS -->
+  <div class="card">
+    <h3> Skills (${(d.skills || []).length})</h3>
+    ${(d.skills || []).map(s => `<span class="badge">${s}</span>`).join("")}
+  </div>
+
+  <!-- STRENGTHS -->
+  <div class="card">
+    <h3 class="green"> Strengths</h3>
+    ${(d.strengths || []).map(s => `<p>✔ ${s}</p>`).join("")}
+  </div>
+
+  <!-- IMPROVEMENTS -->
+  <div class="card">
+    <h3 class="red">Improvements (IMPORTANT)</h3>
+    ${(d.improvements || []).map(s => `<p>➜ ${s}</p>`).join("")}
+  </div>
+
+  <!-- ATS KEYWORDS -->
+  <div class="card">
+    <h3 class="yellow"> Missing ATS Keywords</h3>
+    ${(d.ats_keywords_missing || []).map(s => `<span class="badge">${s}</span>`).join("")}
+  </div>
+
+  ${
+    d.match_percent !== undefined ? `
+    <div class="card">
+      <h3> Job Match</h3>
+      <p><b>${d.match_percent}%</b> - ${d.fit_label}</p>
+
+      <h4>Matched Skills</h4>
+      ${(d.matched_skills || []).join(", ")}
+
+      <h4>Missing Skills</h4>
+      ${(d.missing_skills || []).join(", ")}
+    </div>
+    ` : ""
+  }
+
+  `;
+}
+
+</script>
+
+</body>
+</html>
